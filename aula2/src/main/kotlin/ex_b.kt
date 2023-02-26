@@ -1,37 +1,34 @@
 import org.antlr.v4.runtime.CharStreams
 
-//Exercício A: reconhecedor de tokens de expressão aritmética
-//Partido do exemplo inicial dado, o objetivo é definir um reconhecedor de elementos de expressão aritmética, onde são permitidos:
-//
-//números inteiros
-//números reais, com parte decimal separada por um ponto
-//operadores ariteméticos simples: +, -, *, /
-//operador ^ para a potência: base ^ exp
-//parênteses ( ) para envolver operação binária
-//
-//Entre os elementos acima poderão estar espaços em branco. Atenção que neste exercício apenas trataremos de reconhecer os tokens de forma isolada, e não da sua correta formação (sintaxe).
-
+val numbersStack = ArrayDeque<Int>()
+val operationsStack = ArrayDeque<String>()
 fun main() {
 
-    val numInt = "123 4 5 6"
-    val numDec = "1.2 4.3  6.1"
-    val opArithmetic = "+ - * /"
-    val opPower = "^"
-    val parentheses = "( )"
+    val exp = "( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )"
+    val lexer = Expressions(CharStreams.fromString(exp))
+    lexer.allTokens.forEach {
+        println(it.text)
+        when (it.type) {
+            1 -> numbersStack.add(it.text.toInt())
+            4 -> operationsStack.add(it.text)
+            6 -> if (it.text == ")") calc()
+        }
+    }
+    println(numbersStack)
+    println(operationsStack)
+}
 
-    val lexerNumInt = Expressions(CharStreams.fromString(numInt))
-    lexerNumInt.allTokens.forEach { println(it.text) }
+fun calc() {
+    when (operationsStack.removeLast()) {
+        "+" -> sum(numbersStack.removeLast(), numbersStack.removeLast())
+        "*" -> multiply(numbersStack.removeLast(), numbersStack.removeLast())
+    }
+}
 
-    val lexerNumDecimal = Expressions(CharStreams.fromString(numDec))
-    lexerNumDecimal.allTokens.forEach { println(it.text) }
+fun multiply(first: Int, last: Int) {
+    numbersStack.add(first * last)
+}
 
-    val lexerOpArithmetic = Expressions(CharStreams.fromString(opArithmetic))
-    lexerOpArithmetic.allTokens.forEach { println(it.text) }
-
-    val lexerOpPower = Expressions(CharStreams.fromString(opPower))
-    lexerOpPower.allTokens.forEach { println(it.text) }
-
-    val lexerParentheses = Expressions(CharStreams.fromString(parentheses))
-    lexerParentheses.allTokens.forEach { println(it.text) }
-
+fun sum(last: Int, first: Int) {
+    numbersStack.add(first + last)
 }
